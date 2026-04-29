@@ -8,17 +8,31 @@ datasource db {
 }
 
 model User {
-  id               Int                @id @default(autoincrement())
-  username         String             @unique
-  passwordHash     String             @map("password_hash")
-  preferredLocale  Locale             @default(es) @map("preferred_locale")
-  createdAt        DateTime           @default(now()) @map("created_at")
+  id                   Int                @id @default(autoincrement())
+  username             String             @unique
+  email                String             @unique
+  passwordHash         String             @map("password_hash")
+  role                 UserRole           @default(USER) @map("role")
+  isActive             Boolean            @default(true) @map("is_active")
+  emailVerified        Boolean            @default(false) @map("email_verified")
+  lastLoginAt          DateTime?          @map("last_login_at")
+  profileImageBase64   String?            @map("profile_image_base64") @db.Text
+  preferredLocale      Locale             @default(es) @map("preferred_locale")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
 
   userWordProgress UserWordProgress[]
   userStats        UserStats?
   conversations    Conversation[]
 
   @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+
+  @@map("user_role")
 }
 
 model Word {

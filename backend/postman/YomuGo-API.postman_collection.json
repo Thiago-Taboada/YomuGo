@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
     "name": "YomuGo API v1",
-    "description": "Colección para la API REST de Yomu (NestJS).\n\n**Variables de colección:** `apiHost` (localhost), `apiPort` (3000), `accessToken` (se guarda tras Login/Register), `categoryId`, `wordId`. El prefijo de ruta es siempre `/api/v1`.\n\n**Auth:** peticiones marcadas usan Bearer `{{accessToken}}`.",
+    "description": "Colección para la API REST de Yomu (NestJS).\n\n**Variables:** `apiHost`, `apiPort`, `accessToken`, `userId` (tras login/register), `categoryId`, `wordId`.\n\nLogin usa `identifier` (usuario o email). Registro requiere `username`, `email`, `password`. Para el primer admin: registrate y en la BD cambia `role` a `ADMIN` (ver README).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -21,6 +21,10 @@
     {
       "key": "categoryId",
       "value": "7"
+    },
+    {
+      "key": "userId",
+      "value": "1"
     },
     {
       "key": "wordId",
@@ -80,6 +84,9 @@
                   "    const j = pm.response.json();",
                   "    if (j.success && j.data && j.data.token) {",
                   "      pm.collectionVariables.set('accessToken', j.data.token);",
+                  "      if (j.data.user && j.data.user.id) {",
+                  "        pm.collectionVariables.set('userId', String(j.data.user.id));",
+                  "      }",
                   "    }",
                   "  }",
                   "} catch (e) {}"
@@ -98,7 +105,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"demo\",\n  \"password\": \"secret12\",\n  \"preferredLocale\": \"es\"\n}"
+              "raw": "{\n  \"username\": \"demo\",\n  \"email\": \"demo@example.com\",\n  \"password\": \"secret12\",\n  \"preferredLocale\": \"es\"\n}"
             },
             "url": {
               "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/auth/register",
@@ -123,6 +130,9 @@
                   "    const j = pm.response.json();",
                   "    if (j.success && j.data && j.data.token) {",
                   "      pm.collectionVariables.set('accessToken', j.data.token);",
+                  "      if (j.data.user && j.data.user.id) {",
+                  "        pm.collectionVariables.set('userId', String(j.data.user.id));",
+                  "      }",
                   "    }",
                   "  }",
                   "} catch (e) {}"
@@ -141,7 +151,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"username\": \"demo\",\n  \"password\": \"secret12\"\n}"
+              "raw": "{\n  \"identifier\": \"demo\",\n  \"password\": \"secret12\"\n}"
             },
             "url": {
               "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/auth/login",
@@ -184,7 +194,96 @@
       "name": "02 - Users",
       "item": [
         {
-          "name": "PATCH Me (preferencias)",
+          "name": "POST users (admin — crear)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"joruser\",\n  \"email\": \"jor@example.com\",\n  \"password\": \"secret12\",\n  \"preferredLocale\": \"es\",\n  \"role\": \"USER\"\n}"
+            },
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/users",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "users"]
+            },
+            "description": "`role` opcional: USER | ADMIN (solo admin)."
+          },
+          "response": []
+        },
+        {
+          "name": "GET users (admin — listar)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/users?page=1&limit=20",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET users/me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/users/me",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "users", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH users/me",
           "request": {
             "auth": {
               "type": "bearer",
@@ -218,7 +317,7 @@
           "response": []
         },
         {
-          "name": "GET Me / settings",
+          "name": "GET users/me/settings",
           "request": {
             "auth": {
               "type": "bearer",
@@ -238,6 +337,115 @@
               "host": ["{{apiHost}}"],
               "port": "{{apiPort}}",
               "path": ["api", "v1", "users", "me", "settings"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE users/me",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/users/me",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "users", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET users/:id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/users/{{userId}}",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "users", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "PATCH users/:id (admin: puede role)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferredLocale\": \"es\"\n}"
+            },
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/users/{{userId}}",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "users", "{{userId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE users/:id (solo admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/users/{{userId}}",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "users", "{{userId}}"]
             }
           },
           "response": []

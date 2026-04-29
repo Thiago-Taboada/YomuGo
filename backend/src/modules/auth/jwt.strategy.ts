@@ -9,6 +9,20 @@ type JwtPayload = {
   username: string;
 };
 
+const jwtUserSelect = {
+  id: true,
+  username: true,
+  email: true,
+  role: true,
+  preferredLocale: true,
+  createdAt: true,
+  updatedAt: true,
+  isActive: true,
+  emailVerified: true,
+  lastLoginAt: true,
+  profileImageBase64: true,
+} as const;
+
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(
@@ -25,15 +39,16 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   async validate(payload: JwtPayload) {
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: {
-        id: true,
-        username: true,
-        preferredLocale: true,
-        createdAt: true,
-      },
+      select: jwtUserSelect,
     });
     if (!user) {
       throw new UnauthorizedException();
+    }
+    if (!user.isActive) {
+      throw new UnauthorizedException({
+        code: 'ACCOUNT_DISABLED',
+        message: 'Cuenta desactivada',
+      });
     }
     return user;
   }

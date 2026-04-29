@@ -73,14 +73,36 @@ Prefijo base: `/api/v1`
 
 ### Auth
 
-- `POST /auth/register` — body: `username`, `password`, `preferredLocale` opcional (`es`|`pt`)
-- `POST /auth/login` — body: `username`, `password`
+- `POST /auth/register` — body obligatorio: `username`, `email`, `password`; opcional: `preferredLocale` (`es`|`pt`). Siempre crea rol **USER**.
+- `POST /auth/login` — body: `identifier` (nombre de usuario **o** email), `password`. Si la cuenta tiene `isActive: false`, responde **403** con código `ACCOUNT_DISABLED`.
 - `GET /auth/me` — JWT requerido
 
-### Usuario
+### Usuarios y roles
 
-- `PATCH /users/me` — JWT; body: `preferredLocale` opcional
-- `GET /users/me/settings` — JWT
+- **ADMIN:** acceso a todo el CRUD de usuarios y al listado.
+- **USER:** solo puede operar sobre **su propio** registro (`/users/me`, `GET/PATCH /users/:id` si `:id` es el suyo). No puede asignar `role`, `isActive`, `emailVerified` ni borrar a otros.
+
+| Metodo | Ruta | Quien |
+|--------|------|--------|
+| `POST` | `/users` | ADMIN — crear usuario (`role`, `isActive`, `emailVerified`, `profileImageBase64` opcionales) |
+| `GET` | `/users` | ADMIN — listar (paginado `page`, `limit`) |
+| `GET` | `/users/me` | JWT — perfil propio |
+| `PATCH` | `/users/me` | JWT — actualizar perfil (`username`, `email`, `password`, `preferredLocale`, `profileImageBase64`; sin `role` ni flags admin) |
+| `GET` | `/users/me/settings` | JWT |
+| `DELETE` | `/users/me` | JWT — borrar la cuenta propia |
+| `GET` | `/users/:id` | ADMIN o el propio usuario |
+| `PATCH` | `/users/:id` | ADMIN (puede incluir `role`, `isActive`, `emailVerified`) o el propio usuario (mismo perfil que `/users/me`, sin esos campos) |
+| `DELETE` | `/users/:id` | ADMIN — borrar cualquier usuario |
+
+Respuesta de usuario (sin contraseña): `id`, `username`, `email`, `role`, `isActive`, `emailVerified`, `lastLoginAt`, `profileImageBase64`, `preferredLocale`, `createdAt`, `updatedAt`. `lastLoginAt` se actualiza en cada login correcto. `profileImageBase64` es texto largo (p. ej. `data:image/png;base64,...`); evita subidas enormes en produccion (considera CDN u objeto mas adelante).
+
+**Primer usuario admin (una sola vez en desarrollo):** el registro publico (`POST /auth/register`) crea siempre rol **USER**. Para tener un admin, registra una cuenta y en la base de datos cambia `role` a `ADMIN` para ese usuario (por ejemplo con **Prisma Studio**: `npm run prisma:studio`, tabla `users`, columna `role`). A partir de ahi puedes loguearte y usar `POST /users` con `role: ADMIN` para crear mas administradores si lo necesitas.
+
+### Campos modelo User
+
+- **Registro publico:** `username`, `email`, `password` y opcional `preferredLocale`; `role` siempre **USER**, `emailVerified` false, `isActive` true.
+- **Admin POST /users:** ademas opcionales `role`, `isActive`, `emailVerified`, `profileImageBase64`.
+- `profileImageBase64` en columna PostgreSQL `TEXT`; cadena vacia en PATCH borra la imagen.
 
 ### Contenido
 

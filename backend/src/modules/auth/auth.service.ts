@@ -1,23 +1,37 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { Locale } from '@prisma/client';
+import { Locale, Prisma, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
 const BCRYPT_ROUNDS = 10;
 
-export type SafeUser = {
-  id: number;
-  username: string;
-  preferredLocale: Locale;
-  createdAt: Date;
-};
+const authUserSelect = {
+  id: true,
+  username: true,
+  email: true,
+  role: true,
+  isActive: true,
+  emailVerified: true,
+  lastLoginAt: true,
+  profileImageBase64: true,
+  preferredLocale: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.UserSelect;
+
+export type SafeUser = Prisma.UserGetPayload<{ select: typeof authUserSelect }>;
+
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
 
 @Injectable()
 export class AuthService {
@@ -30,13 +44,26 @@ export class AuthService {
     user: SafeUser;
     token: string;
   }> {
-    const existing = await this.prisma.user.findUnique({
-      where: { username: dto.username },
+    const username = dto.username.trim();
+    const email = normalizeEmail(dto.email);
+
+    const existingUsername = await this.prisma.user.findUnique({
+      where: { username },
     });
-    if (existing) {
+    if (existingUsername) {
       throw new ConflictException({
         code: 'USERNAME_TAKEN',
         message: 'El nombre de usuario ya existe',
+      });
+    }
+
+    const existingEmail = await this.prisma.user.findUnique({
+      where: { email },
+    });
+    if (existingEmail) {
+      throw new ConflictException({
+        code: 'EMAIL_TAKEN',
+        message: 'El email ya está registrado',
       });
     }
 
@@ -45,17 +72,14 @@ export class AuthService {
 
     const user = await this.prisma.user.create({
       data: {
-        username: dto.username,
+        username,
+        email,
         passwordHash,
+        role: UserRole.USER,
         preferredLocale,
         userStats: { create: {} },
       },
-      select: {
-        id: true,
-        username: true,
-        preferredLocale: true,
-        createdAt: true,
-      },
+      select: authUserSelect,
     });
 
     const token = await this.signToken(user.id, user.username);
@@ -66,13 +90,31 @@ export class AuthService {
     user: SafeUser;
     token: string;
   }> {
-    const user = await this.prisma.user.findUnique({
-      where: { username: dto.username },
+    const raw = dto.identifier.trim();
+    const byEmail = normalizeEmail(raw);
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ username: raw }, { email: byEmail }],
+      },
+      select: {
+        id: true,
+        passwordHash: true,
+        isActive: true,
+      },
     });
+
     if (!user) {
       throw new UnauthorizedException({
         code: 'INVALID_CREDENTIALS',
-        message: 'Usuario o contrasena incorrectos',
+        message: 'Usuario o contraseña incorrectos',
+      });
+    }
+
+    if (!user.isActive) {
+      throw new ForbiddenException({
+        code: 'ACCOUNT_DISABLED',
+        message: 'Cuenta desactivada',
       });
     }
 
@@ -80,18 +122,18 @@ export class AuthService {
     if (!ok) {
       throw new UnauthorizedException({
         code: 'INVALID_CREDENTIALS',
-        message: 'Usuario o contrasena incorrectos',
+        message: 'Usuario o contraseña incorrectos',
       });
     }
 
-    const safe = {
-      id: user.id,
-      username: user.username,
-      preferredLocale: user.preferredLocale,
-      createdAt: user.createdAt,
-    };
-    const token = await this.signToken(user.id, user.username);
-    return { user: safe, token };
+    const updated = await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+      select: authUserSelect,
+    });
+
+    const token = await this.signToken(updated.id, updated.username);
+    return { user: updated, token };
   }
 
   private signToken(userId: number, username: string): Promise<string> {

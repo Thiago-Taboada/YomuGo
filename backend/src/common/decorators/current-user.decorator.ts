@@ -1,12 +1,19 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { Locale } from '@prisma/client';
+import { Locale, UserRole } from '@prisma/client';
 
-/** JWT payload user shape attached by JwtStrategy (no password). */
+/** Usuario inyectado por JwtStrategy (sin contraseña). */
 export type RequestUser = {
   id: number;
   username: string;
+  email: string;
+  role: UserRole;
   preferredLocale: Locale;
   createdAt: Date;
+  updatedAt: Date;
+  isActive: boolean;
+  emailVerified: boolean;
+  lastLoginAt: Date | null;
+  profileImageBase64: string | null;
 };
 
 export const CurrentUser = createParamDecorator(
