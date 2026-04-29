@@ -1,0 +1,437 @@
+# 🧠 1. Objetivo del programa
+
+👉 Aplicación para aprender japonés de forma progresiva con:
+
+* contenido estructurado (hiragana, katakana, vocabulario, kanji)
+* práctica activa (ejercicios)
+* práctica libre (conversación con IA)
+* minijuegos para reforzar la memorización (hiragana, katakana, vocabulario, kanji)
+
+⚠️ Definir mejor qué tipos de minijuegos aportan valor real al aprendizaje (no solo entretenimiento)
+
+---
+
+# 🧱 2. Módulos principales del sistema
+
+## 📘 A. Fundamentos (Base del aprendizaje)
+
+### 1. Hiragana
+
+* Tabla completa
+
+* Modo estudio (visual + audio de pronunciación)
+
+* Ejercicios:
+
+  * reconocimiento (¿qué carácter es?)
+  * escritura (mostrar romaji → escribir en hiragana)
+  * teclado hiragana en pantalla para facilitar la entrada
+
+---
+
+### 2. Katakana
+
+Misma estructura que hiragana, pero como módulo independiente.
+
+---
+
+### 3. Kanji
+
+* Kanji organizados por nivel (JLPT N5 → N1)
+
+* Para cada kanji:
+
+  * significado
+  * lecturas (onyomi / kunyomi)
+  * ejemplos de palabras
+
+* Ejercicios:
+
+  * reconocer significado
+  * elegir lectura correcta
+  * escritura (opcional, mayor complejidad técnica)
+
+⚠️ Los kanji se implementarán en una fase posterior debido a su complejidad y necesidad de mayor planificación
+
+---
+
+## 🧾 B. Vocabulario
+
+* Categorías:
+
+  * vida diaria
+  * comida
+  * transporte
+  * trabajo
+
+* Cada palabra:
+
+  * japonés (kanji/kana)
+  * romaji (opcional)
+  * significado
+  * audio
+
+### Ejercicios:
+
+* flashcards
+* elección múltiple
+* escribir traducción
+
+👉 Posibles añadidos:
+
+* “palabra del día”
+* sistema de repetición espaciada (tipo Anki simplificado)
+
+⚠️ Definir mejor qué tipos de ejercicios y minijuegos realmente ayudan a retener información
+
+---
+
+### ⚠️ Estrategia de datos (MUY IMPORTANTE)
+
+El sistema NO dependerá completamente de la IA para generar contenido.
+
+👉 Enfoque híbrido:
+
+**Base de datos local:**
+
+* palabras comunes predefinidas (ej: nivel N5 inicial)
+* datos consistentes y estructurados
+* acceso rápido sin latencia
+
+**IA:**
+
+* generación de ejemplos dinámicos
+* correcciones
+* variaciones de uso
+* conversación
+
+❗ La IA NO se usará como fuente principal de vocabulario, sino como complemento inteligente.
+
+Esto permite:
+
+* mayor rendimiento
+* consistencia en el aprendizaje
+* menor coste computacional
+* mejor control pedagógico
+
+---
+
+## 💬 C. Práctica de conversación
+
+Este es el componente diferenciador del sistema.
+
+### Modos:
+
+#### 1. Chat escrito
+
+* El usuario puede elegir:
+
+  * romaji
+  * hiragana/katakana
+
+* Funcionalidad:
+
+  * el usuario escribe en japonés
+
+  * la IA responde
+
+  * la IA corrige:
+
+    * errores gramaticales
+    * uso de partículas
+    * naturalidad
+
+  * explicación de errores:
+
+    * qué está mal
+    * por qué
+    * alternativa más natural
+
+Ejemplo:
+
+Usuario: watashi wa sushi taberu
+IA:
+❌ Corrección: watashi wa sushi o tabemasu
+💡 Sugerencia: sushi ga suki desu
+
+---
+
+#### 2. Conversación con voz
+
+* Usuario habla (speech-to-text)
+* IA responde (texto + opcional voz)
+* Correcciones iguales que en modo texto
+
+⚠️ Se implementará en una fase posterior debido a su complejidad
+
+---
+
+#### 3. Escenarios
+
+Añade contexto y realismo a la práctica.
+
+* restaurante
+* aeropuerto
+* tienda
+* conversación casual
+
+👉 La IA actúa con un rol definido:
+
+> “Eres un camarero en Japón”
+
+⚠️ Definir al menos 10 escenarios base
+⚠️ Permitir que el usuario cree escenarios personalizados
+
+---
+
+## 🧠 D. Sistema de progreso
+
+* niveles:
+
+  * JLPT (N5 → N1)
+  * equivalente visual (básico → avanzado)
+
+* estadísticas:
+
+  * palabras aprendidas
+  * precisión
+  * tiempo de uso
+
+* sistema de revisión:
+
+  * palabras falladas aparecen con mayor frecuencia
+
+---
+
+### ⚠️ Evaluación del usuario
+
+Definir métodos de medición:
+
+* nivel estimado:
+
+  * basado en vocabulario, precisión y uso
+
+* exámenes tipo JLPT:
+
+  * evaluaciones periódicas
+
+* sistema de “checkpoint” (renombrar):
+
+  * último nivel validado mediante examen
+  * avisar el usuario cuando el nivel estimado calcula que esta listo para el proximo examen
+
+---
+
+## ⚙️ E. IA local
+
+* uso de modelos locales:
+
+  * llama.cpp
+  * ollama
+
+* funciones:
+
+  * corrección de japonés
+  * generación de respuestas
+
+### ⚠️ Limitaciones:
+
+* modelos pequeños pueden fallar en japonés
+* procesamiento de voz puede ser costoso
+
+👉 Alternativa:
+
+* IA local para uso básico
+* API externa opcional para mayor calidad
+
+---
+
+## 🎤 F. Voz (fase posterior)
+
+### Entrada:
+
+* speech-to-text (ej: Vosk, Whisper)
+
+### Salida:
+
+* text-to-speech en japonés
+
+👉 Implementación en fases avanzadas
+
+---
+
+# 🧩 3. Arquitectura sugerida
+
+### 🖥️ Frontend
+
+* **Flutter**
+* Una sola base de código pensada primero para desktop/web, con posibilidad de reutilización futura para **APK Android** y otras plataformas.
+* Maneja:
+
+  * interfaz del sistema
+  * navegación entre módulos
+  * lecciones y ejercicios
+  * práctica guiada
+  * chat con IA
+  * visualización de progreso
+  * minijuegos
+  * consumo de la API del backend
+
+---
+
+### ⚙️ Backend
+
+* **Node.js + TypeScript**
+* **API REST**
+* Responsable de:
+
+  * autenticación
+  * usuarios
+  * vocabulario
+  * categorías
+  * kanji
+  * ejemplos
+  * progreso
+  * lógica de práctica
+  * historial de conversaciones
+  * métricas y dashboard
+
+👉 La API será el punto central de comunicación entre frontend, base de datos y servicios inteligentes.
+
+---
+
+### 🗄️ Base de datos
+
+* **PostgreSQL**
+* Base de datos principal del sistema: **`yomu`**
+* Responsable de almacenar:
+
+  * palabras
+  * traducciones
+  * kanji
+  * ejemplos
+  * categorías
+  * progreso del usuario
+  * estadísticas
+  * conversaciones
+  * mensajes
+
+👉 La estructura está pensada para soportar **español y portugués** mediante tablas de traducción, manteniendo el contenido japonés como base principal.
+
+---
+
+### 🧱 Acceso a datos y modelado
+
+* **Prisma**
+* Responsable de:
+
+  * definir el esquema de la base de datos
+  * generar migraciones
+  * mapear entidades del backend en TypeScript
+  * facilitar consultas seguras y mantenibles
+
+👉 Prisma será la fuente principal del esquema del proyecto, mientras que herramientas como DBeaver podrán usarse para inspección, pruebas e inserts manuales iniciales.
+
+---
+
+### 🧠 Módulo inteligente
+
+* Uso inicial preferente de **API externa de IA** para:
+
+  * corrección de japonés
+  * generación de respuestas
+  * explicación de errores
+  * sugerencias de naturalidad
+  * conversación por escenario
+
+* Uso opcional y futuro de un módulo especializado para procesamiento lingüístico más avanzado, si realmente se necesita.
+
+👉 En una fase posterior, se podrá evaluar un módulo adicional para análisis más profundo del japonés, especialmente si se requiere procesamiento morfológico, integración con herramientas específicas o mayor control técnico sobre la corrección.
+
+---
+
+### 🔊 Audio / Voz
+
+* Esta parte queda para una fase posterior.
+* Posibles tecnologías:
+
+  * speech-to-text: **Whisper** o **Vosk**
+  * text-to-speech japonés: **Open JTalk** o alternativas equivalentes
+
+👉 No formará parte del MVP inicial, pero la arquitectura deberá dejar espacio para integrarla más adelante.
+
+---
+
+# ✅ Stack tecnológico propuesto
+
+## Frontend
+
+* Flutter
+
+## Backend
+
+* Node.js
+* TypeScript
+* API REST
+
+## Base de datos
+
+* PostgreSQL (`yomu`)
+
+## ORM / acceso a datos
+
+* Prisma
+
+## IA
+
+* API externa en la primera etapa
+* módulo especializado opcional en fases posteriores
+
+## Herramientas de apoyo
+
+* DBeaver para inspección y administración de base de datos
+
+---
+
+# 🚀 4. MVP (mínimo viable)
+
+### Versión 1:
+
+* Hiragana + ejercicios
+* Vocabulario básico (~500–1000 palabras)
+* Flashcards
+* Progreso simple
+* Frontend web en Flutter
+* Backend REST con Node.js + TypeScript
+* Base de datos PostgreSQL con Prisma
+
+### Versión 2:
+
+* Katakana
+* Mejora de ejercicios
+* revisión de errores
+* más categorías de vocabulario
+
+### Versión 3:
+
+* Chat con IA (texto)
+
+### Versión 4:
+
+* Correcciones avanzadas
+* Escenarios
+
+### Versión 5:
+
+* Voz
+
+
+# 💡 5. Ideas de alto valor
+
+* detección automática de errores comunes
+* explicación clara del “por qué”
+* modo inmersión (solo japonés)
+* dificultad adaptativa
+* personalización según errores del usuario
+
+---

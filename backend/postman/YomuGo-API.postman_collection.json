@@ -1,0 +1,423 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "YomuGo API v1",
+    "description": "Colección para la API REST de Yomu (NestJS).\n\n**Variables de colección:** `apiHost` (localhost), `apiPort` (3000), `accessToken` (se guarda tras Login/Register), `categoryId`, `wordId`. El prefijo de ruta es siempre `/api/v1`.\n\n**Auth:** peticiones marcadas usan Bearer `{{accessToken}}`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "apiHost",
+      "value": "localhost"
+    },
+    {
+      "key": "apiPort",
+      "value": "3000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "categoryId",
+      "value": "7"
+    },
+    {
+      "key": "wordId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Health / Locales",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/health",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "health"]
+            },
+            "description": "Comprobación del servidor."
+          },
+          "response": []
+        },
+        {
+          "name": "Locales soportados",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/locales",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "locales"]
+            },
+            "description": "Devuelve ['es', 'pt']."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 - Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "try {",
+                  "  if ([200, 201].includes(pm.response.code)) {",
+                  "    const j = pm.response.json();",
+                  "    if (j.success && j.data && j.data.token) {",
+                  "      pm.collectionVariables.set('accessToken', j.data.token);",
+                  "    }",
+                  "  }",
+                  "} catch (e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo\",\n  \"password\": \"secret12\",\n  \"preferredLocale\": \"es\"\n}"
+            },
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/auth/register",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "auth", "register"]
+            },
+            "description": "`preferredLocale` opcional: `es` | `pt`."
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "try {",
+                  "  if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    const j = pm.response.json();",
+                  "    if (j.success && j.data && j.data.token) {",
+                  "      pm.collectionVariables.set('accessToken', j.data.token);",
+                  "    }",
+                  "  }",
+                  "} catch (e) {}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"demo\",\n  \"password\": \"secret12\"\n}"
+            },
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Me (usuario actual)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/auth/me",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "auth", "me"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Users",
+      "item": [
+        {
+          "name": "PATCH Me (preferencias)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"preferredLocale\": \"pt\"\n}"
+            },
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/users/me",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "users", "me"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET Me / settings",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/users/me/settings",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "users", "me", "settings"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Categories",
+      "item": [
+        {
+          "name": "Listar categorías",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/categories?locale=es",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "categories"],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "es"
+                }
+              ]
+            },
+            "description": "Query opcional: `locale=es|pt`. También se respeta `Accept-Language`."
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle categoría",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/categories/{{categoryId}}?locale=es",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "categories", "{{categoryId}}"],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "es"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Words",
+      "item": [
+        {
+          "name": "Listar palabras",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/words?locale=es&page=1&limit=20",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "words"],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "es"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Query opcionales: `locale`, `level`, `categoryId`, `partOfSpeech`, `page`, `limit`."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar palabras (filtros ejemplo)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/words?locale=es&level=N5&categoryId=7&partOfSpeech=verb&page=1&limit=10",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "words"],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "es"
+                },
+                {
+                  "key": "level",
+                  "value": "N5"
+                },
+                {
+                  "key": "categoryId",
+                  "value": "7"
+                },
+                {
+                  "key": "partOfSpeech",
+                  "value": "verb"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Detalle palabra",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/words/{{wordId}}?locale=es",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "words", "{{wordId}}"],
+              "query": [
+                {
+                  "key": "locale",
+                  "value": "es"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Progress",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://{{apiHost}}:{{apiPort}}/api/v1/progress/dashboard",
+              "protocol": "http",
+              "host": ["{{apiHost}}"],
+              "port": "{{apiPort}}",
+              "path": ["api", "v1", "progress", "dashboard"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,230 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               Int                @id @default(autoincrement())
+  username         String             @unique
+  passwordHash     String             @map("password_hash")
+  preferredLocale  Locale             @default(es) @map("preferred_locale")
+  createdAt        DateTime           @default(now()) @map("created_at")
+
+  userWordProgress UserWordProgress[]
+  userStats        UserStats?
+  conversations    Conversation[]
+
+  @@map("users")
+}
+
+model Word {
+  id             Int                @id @default(autoincrement())
+  kanji          String?
+  kana           String
+  romaji         String?
+  level          String?
+  frequency      Int?
+  partOfSpeech   String?            @map("part_of_speech")
+  createdAt      DateTime           @default(now()) @map("created_at")
+
+  translations   WordTranslation[]
+  examples       Example[]
+  wordKanji      WordKanji[]
+  wordCategories WordCategory[]
+  userProgress   UserWordProgress[]
+
+  @@index([level], map: "idx_words_level")
+  @@index([frequency], map: "idx_words_frequency")
+  @@map("words")
+}
+
+model WordTranslation {
+  id       Int    @id @default(autoincrement())
+  wordId   Int    @map("word_id")
+  locale   Locale
+  meaning  String
+
+  word     Word   @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([wordId, locale])
+  @@index([wordId], map: "idx_word_translations_word")
+  @@index([locale], map: "idx_word_translations_locale")
+  @@map("word_translations")
+}
+
+model Kanji {
+  id            Int                @id @default(autoincrement())
+  character     String             @unique
+  onyomi        String?
+  kunyomi       String?
+  level         String?
+  strokeCount   Int?               @map("stroke_count")
+  frequency     Int?
+
+  translations  KanjiTranslation[]
+  wordKanji     WordKanji[]
+
+  @@index([level], map: "idx_kanji_level")
+  @@map("kanji")
+}
+
+model KanjiTranslation {
+  id       Int    @id @default(autoincrement())
+  kanjiId  Int    @map("kanji_id")
+  locale   Locale
+  meaning  String
+
+  kanji    Kanji  @relation(fields: [kanjiId], references: [id], onDelete: Cascade)
+
+  @@unique([kanjiId, locale])
+  @@index([kanjiId], map: "idx_kanji_translations_kanji")
+  @@index([locale], map: "idx_kanji_translations_locale")
+  @@map("kanji_translations")
+}
+
+model WordKanji {
+  wordId   Int    @map("word_id")
+  kanjiId  Int    @map("kanji_id")
+
+  word     Word   @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  kanji    Kanji  @relation(fields: [kanjiId], references: [id], onDelete: Cascade)
+
+  @@id([wordId, kanjiId])
+  @@map("word_kanji")
+}
+
+model Example {
+  id           Int                   @id @default(autoincrement())
+  wordId       Int?                  @map("word_id")
+  japanese     String
+  source       String?
+  createdAt    DateTime              @default(now()) @map("created_at")
+
+  word         Word?                 @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  translations ExampleTranslation[]
+
+  @@index([wordId], map: "idx_examples_word")
+  @@map("examples")
+}
+
+model ExampleTranslation {
+  id          Int      @id @default(autoincrement())
+  exampleId   Int      @map("example_id")
+  locale      Locale
+  translation String
+
+  example     Example  @relation(fields: [exampleId], references: [id], onDelete: Cascade)
+
+  @@unique([exampleId, locale])
+  @@index([exampleId], map: "idx_example_translations_example")
+  @@index([locale], map: "idx_example_translations_locale")
+  @@map("example_translations")
+}
+
+model Category {
+  id             Int                   @id @default(autoincrement())
+  code           String                @unique
+
+  translations   CategoryTranslation[]
+  wordCategories WordCategory[]
+
+  @@map("categories")
+}
+
+model CategoryTranslation {
+  id          Int      @id @default(autoincrement())
+  categoryId  Int      @map("category_id")
+  locale      Locale
+  name        String
+
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, locale])
+  @@index([categoryId], map: "idx_category_translations_category")
+  @@index([locale], map: "idx_category_translations_locale")
+  @@map("category_translations")
+}
+
+model WordCategory {
+  wordId      Int      @map("word_id")
+  categoryId  Int      @map("category_id")
+
+  word        Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  category    Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([wordId, categoryId])
+  @@map("word_categories")
+}
+
+model UserWordProgress {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @map("user_id")
+  wordId         Int       @map("word_id")
+  correctCount   Int       @default(0) @map("correct_count")
+  incorrectCount Int       @default(0) @map("incorrect_count")
+  lastSeen       DateTime? @map("last_seen")
+  nextReview     DateTime? @map("next_review")
+  easeFactor     Float     @default(2.5) @map("ease_factor")
+  intervalDays   Int       @default(1) @map("interval_days")
+
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word           Word      @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId])
+  @@index([userId], map: "idx_progress_user")
+  @@index([nextReview], map: "idx_progress_next_review")
+  @@map("user_word_progress")
+}
+
+model UserStats {
+  userId          Int    @id @map("user_id")
+  totalWords      Int    @default(0) @map("total_words")
+  accuracy        Float  @default(0)
+  totalStudyTime  Int    @default(0) @map("total_study_time")
+
+  user            User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_stats")
+}
+
+model Conversation {
+  id         Int        @id @default(autoincrement())
+  userId     Int        @map("user_id")
+  scenario   String?
+  createdAt  DateTime   @default(now()) @map("created_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages   Message[]
+
+  @@index([userId], map: "idx_conversations_user")
+  @@map("conversations")
+}
+
+model Message {
+  id             Int         @id @default(autoincrement())
+  conversationId Int         @map("conversation_id")
+  role           MessageRole
+  content        String
+  correction     String?
+  explanation    String?
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId], map: "idx_messages_conversation")
+  @@map("messages")
+}
+
+enum Locale {
+  es
+  pt
+}
+
+enum MessageRole {
+  user
+  assistant
+}
