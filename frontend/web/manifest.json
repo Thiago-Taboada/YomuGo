@@ -1,0 +1,9 @@
+{
+  "name": "YomuGo",
+  "short_name": "YomuGo",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0B0E14",
+  "theme_color": "#8B5CF6",
+  "description": "Cliente web YomuGo"
+}
