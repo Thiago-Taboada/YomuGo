@@ -1,0 +1,75 @@
+# Project Rules — Yomu
+
+## 1. Reglas para cambios de backend y API
+
+Si la tarea afecta el **backend** y modifica o crea cualquier parte de la **API**, el agente debe:
+
+1. Revisar primero el documento base:
+   - `\Documento base de API.md`
+
+2. Verificar si el cambio:
+   - agrega una nueva ruta,
+   - modifica una ruta existente,
+   - cambia request/response,
+   - altera validaciones,
+   - afecta reglas de negocio relacionadas con la API.
+
+3. Después de implementar el cambio, debe actualizar también:
+   - `\backend\postman\YomuGo-API.postman_collection.json`
+
+4. Además, debe crear o actualizar el documento:
+   - `\api-future-planning.md`
+
+5. En `\api-future-planning.md` debe registrar:
+   - rutas mencionadas en `\Documento base de API.md` que todavía no estén implementadas,
+   - rutas que el agente detecte como necesarias para completar correctamente el sistema,
+   - observaciones breves sobre pendientes de API, si aplica.
+
+### Regla importante
+El agente no debe asumir que una ruta ya está documentada correctamente sin revisar el documento base de API y la colección de Postman.
+
+---
+
+## 2. Reglas para cambios de frontend
+
+Si la tarea afecta el **frontend**, el agente debe tener en cuenta que el sistema será **multilenguaje**.
+
+Antes de implementar cualquier cambio visual o textual, debe revisar:
+- `\Documento guia i18n.md`
+
+El agente debe verificar que:
+- los textos del sistema que correspondan estén preparados para traducción,
+- no se agreguen textos fijos directamente en la UI si deberían ser traducibles,
+- la solución respete la estructura de internacionalización definida para el proyecto,
+- los elementos del sistema usen correctamente el enfoque de i18n establecido.
+
+### Regla importante
+Los textos del sistema deben seguir la guía de i18n.  
+El agente no debe inventar atajos que rompan la estrategia multilenguaje del proyecto.
+
+---
+
+## 3. Regla de dudas, ambigüedad y decisiones no explícitas
+
+Si el agente tiene cualquier duda, detecta ambigüedad o falta información importante, **no debe inventar comportamiento ni asumir detalles críticos por su cuenta**.
+
+En esos casos, debe:
+- detenerse antes de implementar partes inciertas,
+- hacer las preguntas necesarias,
+- pedir aclaración cuando una decisión afecte arquitectura, negocio, API, i18n, flujo o comportamiento esperado.
+
+### Regla importante
+Ante ambigüedad, el agente debe **preguntar primero** en lugar de completar con suposiciones.
+
+---
+
+## 4. Prioridad de estas reglas
+
+Estas reglas deben aplicarse siempre que sean relevantes para la tarea.
+
+Orden de prioridad:
+1. consistencia con la arquitectura del proyecto,
+2. consistencia con `\Documento base de API.md`,
+3. consistencia con `\Documento guia i18n.md`,
+4. no asumir información faltante,
+5. mantener documentación y colección Postman actualizadas cuando corresponda.
