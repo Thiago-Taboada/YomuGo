@@ -37,11 +37,16 @@ desktop.ini
 *.swo
 *~
 
-# --- Flutter / Dart (cuando exista el frontend) ---
+# --- Flutter / Dart (frontend) ---
 .dart_tool/
 **/doc/api/
 *.iml
 .packages
+.flutter-plugins-dependencies
+
+# Simbolos / mapas de release (Flutter)
+**/app.*.symbols
+**/app.*.map.json
 
 # --- Prisma (generados locales opcionales) ---
 **/prisma/*.db
